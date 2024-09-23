@@ -1,0 +1,16 @@
+{% extends "template.html" %}
+
+{% block title %}
+    Error
+{% endblock %}
+
+
+{% block main %}
+
+    <div class="text-center" style="font-size: xxx-large; margin: 100px;">
+        <div style="margin: 10px;"><p>Encountered error: {{code}}</p></div>
+            <hr>
+        <div style="margin: 10px;"><p>{{text}}</p></div>
+    </div>
+
+{% endblock %}
