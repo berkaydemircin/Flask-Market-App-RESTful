@@ -1,0 +1,5 @@
+Flask
+Flask-Session
+pytz
+requests
+Flask_JWT_Extended
