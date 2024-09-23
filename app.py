@@ -41,7 +41,7 @@ cursor = conn.cursor()
 
 # To register a new vendor
 @app.route('/api/vendors', methods=['POST'])
-def api_register():
+def api_vendors_create():
     data = request.get_json()
 
     required_fields = ['username', 'password', 'display_name', 'description', 'contact_info']
@@ -89,16 +89,15 @@ def api_token():
     
     # Validate credentials, generate JWT for API clients
     row = cursor.fetchall()
-    print(row)
-    print(len(row))
     if len(row) != 1 or not check_password_hash(row[0]["hash"], password):
         return jsonify({'error': 'invalid credentials'})
     else:
         access_token = create_access_token(identity=username)
         return jsonify({'access_token': access_token})
 
+# To see a single vendors details
 @app.route('/api/vendors/<int:id>', methods=['GET'])
-def api_vendors(id):
+def api_vendors_details(id):
     try:
         cursor.execute("SELECT store_name, description, contact_info FROM vendors WHERE vendor_id = ?", (id,))
     except sqlite3.Error as e:
@@ -141,6 +140,93 @@ def api_vendors_update(id):
         return jsonify({'error': 'SQL error', 'details': str(e)}), 500
 
     return jsonify({'status': 'success'}), 200
+
+# To view all items of vendor
+@app.route('/api/vendors/<int:id>/items', methods=['GET'])
+@jwt_required()
+def api_vendors_items(id):
+    vendor = get_jwt_identity()
+    cursor.execute("SELECT vendor_id FROM vendors WHERE name = ?", (vendor,))
+    row = cursor.fetchone()
+
+    if row is None:
+        return jsonify({'error': 'vendor not found'}), 404
+    if id != row["vendor_id"]:
+        return jsonify({'error': 'not authorized to view other vendors stock'}), 403
+
+    try:
+        cursor.execute('SELECT * FROM items WHERE vendor_id = ?', (row["vendor_id"],))
+        items = cursor.fetchall()
+    except sqlite3.Error as e:
+        return jsonify({'error': 'SQL error', 'details': str(e)}), 500
+    
+    items_list = [
+        {
+            'item_id': item['item_id'],
+            'item_name': item['item_name'],
+            'vendor_id': item['vendor_id'],
+            'stock': item['stock'],
+            'price': item['price']
+        } for item in items
+    ]
+
+    return jsonify({
+        'vendor_id': row["vendor_id"],
+        'items': items_list
+    })
+
+# Create new items for the vendor
+@app.route("/api/items", methods=["POST"])
+@jwt_required()
+def api_items():
+    vendor = get_jwt_identity()
+    cursor.execute("SELECT vendor_id FROM vendors WHERE name = ?", (vendor,))
+    row = cursor.fetchone()
+
+    data = request.get_json()
+
+    # Check if required fields are present
+    required_fields = ['item_name', 'stock', 'price']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'missing field: {field}'}), 400
+        
+    item_name = data['item_name']
+    stock = data['stock']
+    price = data['price']
+
+    # Updating vendor info
+    try:
+        cursor.execute("INSERT INTO items ('item_name', 'vendor_id', 'stock', 'price') VALUES (?, ?, ?, ?)"
+                       ,(item_name, row["vendor_id"], stock, price))
+        conn.commit()
+    except sqlite3.Error as e:
+        return jsonify({'error': 'SQL error', 'details': str(e)}), 500
+
+    return jsonify({'status': 'success'}), 200
+
+# To see a specific items details
+@app.route('/api/items/<int:id>', methods=['GET'])
+@jwt_required()
+def api_item_details(id):
+    vendor = get_jwt_identity()
+    cursor.execute("SELECT vendor_id FROM vendors WHERE name = ?", (vendor,))
+    row = cursor.fetchone()
+
+    try:
+        cursor.execute('SELECT * FROM items WHERE item_id = ?', (id,))
+        item = cursor.fetchone()
+    except sqlite3.Error as e:
+        return jsonify({'error': 'SQL error', 'details': str(e)}), 500
+    
+    
+    return jsonify({
+            'item_id': item["item_id"],
+            'item_name': item["item_name"],
+            'vendor_id': item["vendor_id"],
+            'stock': item["stock"],
+            'price': item["price"]
+            })
 
 if (__name__) == "__main__":
     app.run()
