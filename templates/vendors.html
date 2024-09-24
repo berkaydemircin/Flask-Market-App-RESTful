@@ -1,0 +1,52 @@
+{% extends "template.html" %}
+
+{% block title %}
+    Vendors
+{% endblock %}
+
+{% block main %}
+
+<div class="container">
+    {% if vendors %}
+    <h1 class="my-4">Vendors</h1>
+    <div class="row">
+        {% for vendor in vendors %}
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <img src="/static/market.png" class="card-img-top" style="height: 150px; object-fit: contain; width: 100%;" alt="placeholder cardboard box">
+                    <div class="card-body">
+                        <h6 class="card-text">Vendor: {{ vendor.store_name }}</p>
+                        <h6 class="card-text">Name: {{ vendor.description }}</h5>
+                        <h6 class="card-text">Stock: {{ vendor.contact_info }}</p>
+                    </div>
+                </div> 
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <h1 class="my-4">Vendor not found!</h1>
+    {% endif %}
+    
+    {% if items %}
+    <hr>
+
+    <h1 class="my-4">Items of Vendor</h1>
+    <div class="row">
+        {% for item in items %}
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <img src="/static/placeholder.png" class="card-img-top" style="height: 150px; object-fit: contain; width: 100%;" alt="placeholder cardboard box">
+                    <div class="card-body">
+                        <h6 class="card-text">Name: {{ item.item_name }}</h5>
+                        <p class="card-text">Stock: {{ item.stock }}</p>
+                        <p class="card-text"><strong>${{ item.price }}</strong></p>
+                        <a href="#" class="btn btn-primary">Add to Cart</a>
+                    </div>
+                </div> 
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+    
+{% endblock %}

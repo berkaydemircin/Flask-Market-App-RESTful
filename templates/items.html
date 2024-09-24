@@ -1,0 +1,36 @@
+{% extends "template.html" %}
+
+{% block title %}
+    Items
+{% endblock %}
+
+{% block main %}
+
+
+<div class="container">
+    {% if items %}
+    <h1 class="my-4">Items</h1>
+    <div class="row">
+        {% for item in items %}
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <img src="/static/placeholder.png" class="card-img-top" style="height: 150px; object-fit: contain; width: 100%;" alt="placeholder cardboard box">
+                    <div class="card-body">
+                        <h6 class="card-text">Vendor: {{ item.store_name }}</p>
+                        <h6 class="card-title">Name: {{ item.item_name }}</h5>
+                        <p class="card-text">Stock: {{ item.stock }}</p>
+                        <p class="card-text"><strong>${{ item.price }}</strong></p>
+                        <a href="#" class="btn btn-primary">Add to Cart</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <h1 class="my-4">Item not found!</h1>
+    {% endif %}
+</div>
+    
+
+
+{% endblock %}
