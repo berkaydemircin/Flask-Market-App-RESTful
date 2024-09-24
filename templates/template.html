@@ -16,6 +16,14 @@
         <link href="/static/styles.css" rel="stylesheet">
 
         <title>SwiftMarket: {% block title %}{% endblock %}</title>
+        
+        <script>
+            function updateAction() {
+                const form = document.getElementById('searchForm');
+                const searchType = document.getElementById('searchType').value;
+                form.action = `/${searchType}`; // setting the action based on the selected option
+            }
+        </script>
 
     </head>
     
@@ -31,7 +39,19 @@
                         <ul class="navbar-nav me-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/items">Items</a></li>
                             <li class="nav-item"><a class="nav-link" href="/vendors">Vendors</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/search">Search</a></li>
+
+                            <form id="searchForm" class="form-inline my-2 my-lg-0" action="" method="POST" onsubmit="updateAction()">
+                                <div class="input-group">
+                                    <select class="custom-select bg-dark text-light border-light rounded-pill" id="searchType" name="type" onchange="updateAction()">
+                                        <option value="vendors" selected>Search Vendors</option>
+                                        <option value="items">Search Items</option>
+                                    </select>
+                                    <input class="form-control bg-light text-dark border-light rounded-pill" type="search" placeholder="Search" aria-label="Search" name="name" required>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-success" type="submit">Search</button>
+                                    </div>
+                                </div>
+                            </form>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
@@ -59,3 +79,4 @@
             {% block main %}{% endblock %}
         </main>
     </body>
+    
