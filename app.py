@@ -36,6 +36,117 @@ def get_db_connection():
 conn = get_db_connection()
 cursor = conn.cursor()
 
+# BELOW ARE NON API ENDPOINTS
+
+@app.route("/")
+@login_required
+def index():
+    cursor.execute("SELECT item_name, stock, price, vendors.store_name FROM items JOIN vendors ON items.vendor_id = vendors.vendor_id LIMIT 8")
+    items = cursor.fetchall()
+    return render_template("index.html", items=items)
+
+# Register user
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if not username:
+            return displayError("Must provide username", 400)
+        elif not password:
+            return displayError("Must provide password", 400)
+        elif not password == request.form.get("confirmation"):
+            return displayError("Passwords must match", 400)
+
+        name = username
+        passwordHash = generate_password_hash(password, method='pbkdf2', salt_length=16)
+
+        try:
+            cursor.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (name, passwordHash,))
+            conn.commit()
+            return redirect("/login")
+        except ValueError:
+            return displayError("User already registered", 400)
+
+    else:
+        return render_template("register.html")
+
+# User logs in
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    session.clear()
+
+    # POST route
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        
+        # Ensure username was submitted
+        if not username:
+            return displayError("Must provide username", 403)
+
+        # Ensure password was submitted
+        elif not password:
+            return displayError("Must provide password", 403)
+
+        # Query database for username
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        row = cursor.fetchone()
+
+        # Ensure username exists and password is correct
+        if not check_password_hash(row["hash"], password):
+            return displayError("Invalid username and/or password", 403)
+
+        # Remember user    
+        session["user_id"] = row["user_id"]
+
+        return redirect("/")
+    
+    # GET route
+    else:
+        return render_template("login.html")
+
+# Items
+@app.route("/items", methods=["GET", "POST"])
+@login_required
+def items():
+    if request.method == "GET":
+        cursor.execute("SELECT item_name, stock, price, vendors.store_name FROM items JOIN vendors ON items.vendor_id = vendors.vendor_id")
+        items = cursor.fetchall()
+        return render_template("items.html", items=items)
+    else:
+        name = request.form.get("name")
+        cursor.execute("SELECT item_name, stock, price, vendors.store_name FROM items JOIN vendors ON items.vendor_id = vendors.vendor_id WHERE item_name LIKE ?"
+                       , ("%" + name + "%",))
+        items = cursor.fetchall()
+        return render_template("items.html", items=items)
+
+# Vendors
+@app.route("/vendors", methods=["GET", "POST"])
+@login_required
+def vendors():
+    if request.method == "GET":
+        cursor.execute("SELECT store_name, description, contact_info FROM vendors")
+        vendors = cursor.fetchall()
+        return render_template("vendors.html", vendors=vendors)
+    else:
+        name = request.form.get("name")
+        cursor.execute("SELECT vendor_id, store_name, description, contact_info FROM vendors WHERE store_name LIKE ?"
+                       , ("%" + name + "%",))
+        vendors = cursor.fetchall()
+        cursor.execute("SELECT item_name, stock, price FROM items WHERE items.vendor_id IN (SELECT vendor_id FROM vendors WHERE store_name LIKE ?)"
+                       , ("%" + name + "%",))
+        items = cursor.fetchall()
+        return render_template("vendors.html", vendors=vendors, items=items)
+    
+# User logs out
+@app.route("/logout", methods=["GET"])
+def logout():
+    session.clear()
+    flash("Succesfully logged out.")
+    return redirect("/")
+
     
 # BELOW ARE API RELATED ENDPOINTS
 
