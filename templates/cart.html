@@ -1,0 +1,53 @@
+{% extends "template.html" %}
+
+{% block title %}
+    Cart
+{% endblock %}
+
+{% block main %}
+
+<script>
+    function removeFromCart(itemName) {
+        fetch('/remove_from_cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ item_name: itemName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            location.reload();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+
+<div class="container">
+    {% if items %}
+    <h1 class="my-4">Cart</h1>
+    <div class="row">
+        {% for item in items %}
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <img src="/static/placeholder.png" class="card-img-top" style="height: 150px; object-fit: contain; width: 100%;" alt="placeholder cardboard box">
+                    <div class="card-body">
+                        <h6 class="card-text">Name: {{ item.item_name }}</h5>
+                        <p class="card-text">Stock: {{ item.stock }}</p>
+                        <p class="card-text"><strong>${{ item.price }}</strong></p>
+                        <a href="#" class="btn btn-danger" onclick="removeFromCart('{{ item.item_name }}')">Remove</a>
+                    </div>
+                </div> 
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <h1 class="my-4">Cart is empty!</h1>
+    {% endif %}
+</div>
+    
+{% endblock %}
