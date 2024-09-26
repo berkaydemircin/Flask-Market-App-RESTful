@@ -131,15 +131,18 @@ def vendors():
         vendors = cursor.fetchall()
         return render_template("vendors.html", vendors=vendors)
     else:
-        name = request.form.get("name")
-        cursor.execute("SELECT vendor_id, store_name, description, contact_info FROM vendors WHERE store_name LIKE ?"
-                       , ("%" + name + "%",))
-        vendors = cursor.fetchall()
-        cursor.execute("SELECT item_name, stock, price FROM items WHERE items.vendor_id IN (SELECT vendor_id FROM vendors WHERE store_name LIKE ?)"
-                       , ("%" + name + "%",))
-        items = cursor.fetchall()
-        return render_template("vendors.html", vendors=vendors, items=items)
-    
+        try:
+            name = request.form.get("name")
+            cursor.execute("SELECT vendor_id, store_name, description, contact_info FROM vendors WHERE store_name LIKE ?"
+                        , ("%" + name + "%",))
+            vendors = cursor.fetchall()
+            cursor.execute("SELECT item_name, stock, price FROM items WHERE items.vendor_id IN (SELECT vendor_id FROM vendors WHERE store_name LIKE ?)"
+                        , ("%" + name + "%",))
+            items = cursor.fetchall()
+            return render_template("vendors.html", vendors=vendors, items=items)
+        except sqlite3.Error as e:
+            return displayError(print(e.sqlite_errorname))
+
 # User logs out
 @app.route("/logout", methods=["GET"])
 def logout():
@@ -199,11 +202,13 @@ def api_token():
         return jsonify({'error': 'SQL error', 'details': str(e)}), 500
     
     # Validate credentials, generate JWT for API clients
-    row = cursor.fetchall()
-    if len(row) != 1 or not check_password_hash(row[0]["hash"], password):
+    row = cursor.fetchone()
+
+    id = row["vendor_id"]
+    if not check_password_hash(row["hash"], password):
         return jsonify({'error': 'invalid credentials'})
     else:
-        access_token = create_access_token(identity=username)
+        access_token = create_access_token(identity=id)
         return jsonify({'access_token': access_token})
 
 # To see a single vendors details
@@ -222,12 +227,8 @@ def api_vendors_details(id):
 @jwt_required()
 def api_vendors_update(id):
     vendor = get_jwt_identity()
-    cursor.execute("SELECT vendor_id FROM vendors WHERE name = ?", (vendor,))
-    row = cursor.fetchone()
 
-    if row is None:
-        return jsonify({'error': 'vendor not found'}), 404
-    if id != row["vendor_id"]:
+    if id != vendor:
         return jsonify({'error': 'not authorized to edit other vendors'}), 403
 
     data = request.get_json()
@@ -257,16 +258,12 @@ def api_vendors_update(id):
 @jwt_required()
 def api_vendors_items(id):
     vendor = get_jwt_identity()
-    cursor.execute("SELECT vendor_id FROM vendors WHERE name = ?", (vendor,))
-    row = cursor.fetchone()
 
-    if row is None:
-        return jsonify({'error': 'vendor not found'}), 404
-    if id != row["vendor_id"]:
+    if id != vendor:
         return jsonify({'error': 'not authorized to view other vendors stock'}), 403
 
     try:
-        cursor.execute('SELECT * FROM items WHERE vendor_id = ?', (row["vendor_id"],))
+        cursor.execute('SELECT * FROM items WHERE vendor_id = ?', (vendor,))
         items = cursor.fetchall()
     except sqlite3.Error as e:
         return jsonify({'error': 'SQL error', 'details': str(e)}), 500
@@ -282,7 +279,7 @@ def api_vendors_items(id):
     ]
 
     return jsonify({
-        'vendor_id': row["vendor_id"],
+        'vendor_id': vendor,
         'items': items_list
     })
 
@@ -291,8 +288,6 @@ def api_vendors_items(id):
 @jwt_required()
 def api_items():
     vendor = get_jwt_identity()
-    cursor.execute("SELECT vendor_id FROM vendors WHERE name = ?", (vendor,))
-    row = cursor.fetchone()
 
     data = request.get_json()
 
@@ -309,7 +304,7 @@ def api_items():
     # Updating vendor info
     try:
         cursor.execute("INSERT INTO items ('item_name', 'vendor_id', 'stock', 'price') VALUES (?, ?, ?, ?)"
-                       ,(item_name, row["vendor_id"], stock, price))
+                       ,(item_name, vendor, stock, price))
         conn.commit()
     except sqlite3.Error as e:
         return jsonify({'error': 'SQL error', 'details': str(e)}), 500
@@ -320,9 +315,6 @@ def api_items():
 @app.route('/api/items/<int:id>', methods=['GET'])
 @jwt_required()
 def api_item_details(id):
-    vendor = get_jwt_identity()
-    cursor.execute("SELECT vendor_id FROM vendors WHERE name = ?", (vendor,))
-    row = cursor.fetchone()
 
     try:
         cursor.execute('SELECT * FROM items WHERE item_id = ?', (id,))
@@ -330,7 +322,10 @@ def api_item_details(id):
     except sqlite3.Error as e:
         return jsonify({'error': 'SQL error', 'details': str(e)}), 500
     
-    
+    # If ID doesnt exist
+    if item is None:
+        return jsonify({"error": "no such item with id exists"})
+
     return jsonify({
             'item_id': item["item_id"],
             'item_name': item["item_name"],
@@ -338,6 +333,25 @@ def api_item_details(id):
             'stock': item["stock"],
             'price': item["price"]
             })
+
+# Delete an item
+@app.route('/api/items/<int:id>/delete', methods=['DELETE'])
+@jwt_required()
+def api_item_delete(id):
+    vendor = get_jwt_identity()
+    cursor.execute("SELECT item_id FROM items WHERE items.vendor_id = ? AND item_id = ?", (vendor, id))
+    row = cursor.fetchone()
+
+    if row is None:
+        return jsonify({'error': 'item not found, it may not belong to you'}), 404
+    
+    try:
+        cursor.execute("DELETE FROM items WHERE item_id = ?", (id,))
+        conn.commit()
+    except sqlite3.Error as e:
+        return jsonify({'error': 'SQL error', 'details': str(e)}), 500
+    
+    return jsonify({"status": "success"})
 
 if (__name__) == "__main__":
     app.run()
