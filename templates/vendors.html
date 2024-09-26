@@ -6,6 +6,31 @@
 
 {% block main %}
 
+<script>
+    // TODO This could be turned into async await
+    function addToCart(vendor, name, stock, price) {
+        fetch('/add_to_cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                store_name: vendor,
+                item_name: name,
+                stock: stock,
+                price: price
+             })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
 <div class="container">
     {% if vendors %}
     <h1 class="my-4">Vendors</h1>
@@ -40,7 +65,7 @@
                         <h6 class="card-text">Name: {{ item.item_name }}</h5>
                         <p class="card-text">Stock: {{ item.stock }}</p>
                         <p class="card-text"><strong>${{ item.price }}</strong></p>
-                        <a href="#" class="btn btn-primary">Add to Cart</a>
+                        <a href="#" class="btn btn-primary" onclick="addToCart('{{ item.store_name }}', '{{ item.item_name }}', '{{ item.stock }}', '{{ item.price }}')">Add to Cart</a>
                     </div>
                 </div> 
             </div>
