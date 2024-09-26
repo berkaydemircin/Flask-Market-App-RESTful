@@ -142,6 +142,57 @@ def vendors():
             return render_template("vendors.html", vendors=vendors, items=items)
         except sqlite3.Error as e:
             return displayError(print(e.sqlite_errorname))
+        
+@app.route("/cart", methods=["GET"])
+@login_required
+def cart():
+    # Initialize cart in session if it doesn't exist (otherwise throws a key error)
+    if 'cart' not in session:
+        session['cart'] = []
+
+    if (session["cart"]):
+        return render_template("cart.html", items=session["cart"]), 200
+    else:
+        return render_template("cart.html")
+
+@app.route("/add_to_cart", methods=["POST"])
+@login_required
+def add_to_cart():
+    data = request.get_json()
+
+    store_name = data.get('store_name')
+    item_name = data.get('item_name')
+    stock = data.get('stock')
+    price = data.get('price')
+    # Initialize cart in session if it doesn't exist
+    if 'cart' not in session:
+        session['cart'] = []
+    print(f"Adding to cart: {store_name}, {item_name}, {stock}, {price}")
+    # Add item to cart
+    session['cart'].append({
+        "store_name": store_name,
+        "item_name": item_name,
+        "stock": stock,
+        "price": price
+    })
+    session.modified = True  # Ensuring session is updated
+
+    return render_template("cart.html", items=session["cart"]), 200
+
+@app.route("/remove_from_cart", methods=["POST"])
+@login_required
+def remove_from_cart():
+    data = request.get_json()
+    item_name = data.get('item_name')
+
+    # Check if the cart exists
+    if 'cart' in session:
+        print(f"Current cart structure: {session['cart']}")
+        # Filter out the item to be removed
+        session['cart'] = [item for item in session['cart'] if not (item["item_name"] == item_name)]
+        session.modified = True  # Ensuring session is updated
+        
+    return render_template("cart.html", items=session["cart"]), 200
 
 # User logs out
 @app.route("/logout", methods=["GET"])
