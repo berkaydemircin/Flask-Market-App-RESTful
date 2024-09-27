@@ -6,31 +6,11 @@
 
 {% block main %}
 
-<script>
-    function removeFromCart(itemName) {
-        fetch('/remove_from_cart', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ item_name: itemName })
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    }
-</script>
-
-
 <div class="container">
     {% if items %}
     <h1 class="my-4">Cart</h1>
     <div class="row">
-        <div class="col-9">
+        <div class="shadow col-9">
         {% for item in items %}
             <div class="col-md-3 mb-3">
                 <div class="card">
@@ -40,7 +20,25 @@
                         <p class="card-text">Remaining Stock: {{ item.stock }}</p>
                         <p class="card-text">Quantity in Cart: {{ item.quantity }}</p>
                         <p class="card-text"><strong>${{ item.price }}</strong></p>
-                        <a class="btn btn-danger" onclick="removeFromCart('{{ item.item_name }}')">Remove</a>
+                        <div class="button-box col-lg-12">
+
+                            <form style="display: inline-block; margin-bottom: 15px; margin-right: 6px;" action="/remove_from_cart" method="post">
+                                <input type="hidden" name="quantity" value="{{ 1 }}">
+                                <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                <button type="submit" class="btn btn-danger">-</button>
+                            </form>
+                            <form style="display: inline-block; margin-bottom: 15px; margin-left: 6px" action="/increase" method="post">
+                                <input type="hidden" name="quantity" value="{{ 1 }}">
+                                <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                <button type="submit" class="btn btn-success">+</button>
+                            </form>
+                            
+                        </div>
+                        <form action="/remove_from_cart" method="post">
+                            <input type="hidden" name="quantity" value="{{ item.quantity }}">
+                            <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                            <button type="submit" class="btn btn-danger">Remove</button>
+                        </form>
                     </div>
                 </div> 
             </div>
@@ -48,8 +46,11 @@
         </div>
         <div class="shadow p-3 col-3" style="border-style: solid; border-width: 2px; border-radius: 10px; border-color: black;">
             <h5>Total</h5>
+            <hr>
+            <p>User funds: ${{ funds }}</p>
             <p>Number of Items: {{ count }}</p>
             <p>Cost: <strong>${{ total }}</strong></p>
+            <hr>
             <form action="/checkout" method="post">
                 <button type="submit" class="btn btn-success">Checkout</button>
             </form>
