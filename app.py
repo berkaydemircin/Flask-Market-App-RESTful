@@ -147,11 +147,17 @@ def vendors():
 @login_required
 def cart():
     # Initialize cart in session if it doesn't exist (otherwise throws a key error)
-    if 'cart' not in session:
-        session['cart'] = []
+    if "cart" not in session:
+        session["cart"] = []
+
+    count = 0
+    total = 0
+    for item in session["cart"]:
+        count += int(item["quantity"])
+        total += count * int(item["price"])
 
     if (session["cart"]):
-        return render_template("cart.html", items=session["cart"]), 200
+        return render_template("cart.html", items=session["cart"], count=count, total=total), 200
     else:
         return render_template("cart.html")
 
@@ -165,16 +171,27 @@ def add_to_cart():
     stock = data.get('stock')
     price = data.get('price')
     # Initialize cart in session if it doesn't exist
-    if 'cart' not in session:
-        session['cart'] = []
-    print(f"Adding to cart: {store_name}, {item_name}, {stock}, {price}")
-    # Add item to cart
-    session['cart'].append({
+    if "cart" not in session:
+        session["cart"] = []
+
+    item_found = False
+    for item in session["cart"]:
+        if item_name == item["item_name"]:
+            if int(stock) <= int(item["quantity"]):
+                return displayError("Insufficient stock!", 403)
+            item["quantity"] += 1
+            item_found = True
+            break
+
+    if not item_found:
+        session["cart"].append({
         "store_name": store_name,
         "item_name": item_name,
         "stock": stock,
-        "price": price
+        "price": price,
+        "quantity": 1 # Item count initialized to 1 if not found
     })
+    
     session.modified = True  # Ensuring session is updated
 
     return render_template("cart.html", items=session["cart"]), 200
@@ -185,14 +202,36 @@ def remove_from_cart():
     data = request.get_json()
     item_name = data.get('item_name')
 
-    # Check if the cart exists
-    if 'cart' in session:
-        print(f"Current cart structure: {session['cart']}")
+    # Checking if the cart exists and restructuring the cart
+    if "cart" in session:
         # Filter out the item to be removed
-        session['cart'] = [item for item in session['cart'] if not (item["item_name"] == item_name)]
+        session["cart"] = [item for item in session["cart"] if not (item["item_name"] == item_name)]
         session.modified = True  # Ensuring session is updated
-        
+    
     return render_template("cart.html", items=session["cart"]), 200
+
+@app.route("/checkout", methods=["POST"])
+@login_required
+def checkout():
+    count = 0
+    total = 0
+    for item in session["cart"]:
+        count += int(item["quantity"])
+        total += count * int(item["price"])
+    
+    cursor.execute("SELECT money FROM users WHERE user_id = ?", (session["user_id"],))
+    user_funds = cursor.fetchone()["money"]
+
+    if user_funds >= total:
+        cursor.execute("UPDATE users SET money = money - ? WHERE user_id = ?", (total, session["user_id"]))
+        conn.commit()
+    else:
+        return displayError("Insufficient funds!"), 400
+    
+    # Empty cart if transaction is successful
+    session["cart"] = []
+    flash(f"{count} items bought for {total}. Remaining funds: {user_funds - total}")
+    return render_template("index.html"), 200
 
 # User logs out
 @app.route("/logout", methods=["GET"])
@@ -378,12 +417,12 @@ def api_item_details(id):
         return jsonify({"error": "no such item with id exists"})
 
     return jsonify({
-            'item_id': item["item_id"],
-            'item_name': item["item_name"],
-            'vendor_id': item["vendor_id"],
-            'stock': item["stock"],
-            'price': item["price"]
-            })
+        'item_id': item["item_id"],
+        'item_name': item["item_name"],
+        'vendor_id': item["vendor_id"],
+        'stock': item["stock"],
+        'price': item["price"]
+    })
 
 # Delete an item
 @app.route('/api/items/<int:id>/delete', methods=['DELETE'])
