@@ -1,13 +1,13 @@
 -- Insert vendors
 INSERT INTO vendors (vendor_id, name, hash, store_name, description, contact_info) VALUES
-(1, 'Tech Haven', 'abc123', 'Tech Haven Electronics', 'Your one-stop shop for the latest gadgets.', 'techhaven@example.com'),
-(2, 'Home Essentials', 'def456', 'Home Essentials Supply', 'Quality products for your home needs.', 'homeessentials@example.com'),
-(3, 'Fashion Fiesta', 'ghi789', 'Fashion Fiesta Boutique', 'Trendy clothing for every occasion.', 'fashionfiesta@example.com'),
-(4, 'Pet Paradise', 'jkl012', 'Pet Paradise Store', 'Everything your pet could need.', 'petparadise@example.com'),
-(5, 'Gourmet Delights', 'mno345', 'Gourmet Delights Market', 'Fine foods and gourmet treats.', 'gourmetdelights@example.com'),
-(6, 'Fitness Hub', 'pqr678', 'Fitness Hub Gym', 'Gear up for your fitness journey.', 'fitnesshub@example.com'),
-(7, 'Book Nook', 'stu901', 'The Book Nook', 'Your favorite reads at great prices.', 'booknook@example.com'),
-(8, 'Crafty Corner', 'vwx234', 'Crafty Corner Supplies', 'Supplies for all your crafting needs.', 'craftycornersupplies@example.com');
+(1, 'Tech Haven', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'Tech Haven Electronics', 'Your one-stop shop for the latest gadgets.', 'techhaven@example.com'),
+(2, 'Home Essentials', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'Home Essentials Supply', 'Quality products for your home needs.', 'homeessentials@example.com'),
+(3, 'Fashion Fiesta', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'Fashion Fiesta Boutique', 'Trendy clothing for every occasion.', 'fashionfiesta@example.com'),
+(4, 'Pet Paradise', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'Pet Paradise Store', 'Everything your pet could need.', 'petparadise@example.com'),
+(5, 'Gourmet Delights', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'Gourmet Delights Market', 'Fine foods and gourmet treats.', 'gourmetdelights@example.com'),
+(6, 'Fitness Hub', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'Fitness Hub Gym', 'Gear up for your fitness journey.', 'fitnesshub@example.com'),
+(7, 'Book Nook', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'The Book Nook', 'Your favorite reads at great prices.', 'booknook@example.com'),
+(8, 'Crafty Corner', 'pbkdf2:sha256:600000$D0oMckfdNpKgjyZy$24f3d49ca4f8f523369accf40bc2bc7f5af0e1c4ed7bf33e5e402282d4fa9940', 'Crafty Corner Supplies', 'Supplies for all your crafting needs.', 'craftycornersupplies@example.com');
 
 -- Insert items for Tech Haven
 INSERT INTO items (item_id, item_name, vendor_id, stock, price) VALUES
