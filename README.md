@@ -2,7 +2,7 @@
 
 This is a project done for CS50x, an online introduction to CS course hosted by Harvard University. The Swift Marketplace app lets vendors create, update and delete items from their store, view details on items and other vendors, update stock via the API. The application uses session based authentication for normal users and JWT authorization for API users.
 
-## Project Demo Video: Coming soon
+## Project Demo Video: https://youtu.be/3pfChu618ck (Please note this was done for a CS50x submission, and there was a 3 minute time limit)
 
 ## Technologies Used 
 * Python 3.12.6
