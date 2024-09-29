@@ -7,7 +7,9 @@
 {% block main %}
 
 <script>
-    // TODO This could be turned into async await
+    // TODO THIS COULD BE TURNED INTO ASYNC AWAIT
+    let notificationTimeout;
+
     function addToCart(vendor, name, stock, price) {
         fetch('/add_to_cart', {
             method: 'POST',
@@ -19,17 +21,38 @@
                 item_name: name,
                 stock: stock,
                 price: price
-             })
+            })
         })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
+        .then(response => {
+            if (response.ok) {
+                showNotification(name);
+            }
         })
         .catch((error) => {
             console.error('Error:', error);
         });
     }
+
+    function showNotification(itemName) {
+        const notification = document.getElementById('notification');
+        const message = document.getElementById('notification-message');
+        
+        // Clear any existing timeout
+        clearTimeout(notificationTimeout);
+        
+        message.textContent = `${itemName} added to cart!`;
+        notification.style.display = 'block'; // Show notification
+
+        // Hide after 2 seconds
+        notificationTimeout = setTimeout(() => {
+            notification.style.display = 'none'; // Hide after 2 seconds
+        }, 2000);
+    }
 </script>
+
+<div id="notification" style="display:none; background-color:rgba(0, 123, 255, 0.8); color:white; padding:5px; border-radius:5px;">
+    <span id="notification-message">Item added to cart!</span>
+</div>
 
 <div class="container">
     {% if items %}
@@ -44,7 +67,7 @@
                         <h6 class="card-title">Name: {{ item.item_name }}</h5>
                         <p class="card-text">Stock: {{ item.stock }}</p>
                         <p class="card-text"><strong>${{ item.price }}</strong></p>
-                        <a href="#" class="btn btn-primary" onclick="addToCart('{{ item.store_name }}', '{{ item.item_name }}', '{{ item.stock }}', '{{ item.price }}')">Add to Cart</a>
+                        <a class="btn btn-primary" onclick="addToCart('{{ item.store_name }}', '{{ item.item_name }}', '{{ item.stock }}', '{{ item.price }}')">Add to Cart</a>
                     </div>
                 </div>
             </div>

@@ -2,7 +2,7 @@ CREATE TABLE users (
     user_id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     hash TEXT NOT NULL,
-    money NUMERIC NOT NULL DEFAULT 250.00
+    money NUMERIC NOT NULL DEFAULT 1000.00
 );
 
 CREATE TABLE vendors (

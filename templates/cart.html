@@ -11,38 +11,40 @@
     <h1 class="my-4">Cart</h1>
     <div class="row">
         <div class="shadow col-9">
-        {% for item in items %}
-            <div class="col-md-3 mb-3">
-                <div class="card">
-                    <img src="/static/placeholder.png" class="card-img-top" style="height: 150px; object-fit: contain; width: 100%;" alt="placeholder cardboard box">
-                    <div class="card-body">
-                        <h6 class="card-text">Name: {{ item.item_name }}</h5>
-                        <p class="card-text">Remaining Stock: {{ item.stock }}</p>
-                        <p class="card-text">Quantity in Cart: {{ item.quantity }}</p>
-                        <p class="card-text"><strong>${{ item.price }}</strong></p>
-                        <div class="button-box col-lg-12">
+            <div class="row">
+            {% for item in items %}
+                <div class="col-md-3 mb-3">
+                    <div class="card">
+                        <img src="/static/placeholder.png" class="card-img-top" style="height: 150px; object-fit: contain; width: 100%;" alt="placeholder cardboard box">
+                        <div class="card-body">
+                            <h6 class="card-text">Name: {{ item.item_name }}</h6>
+                            <p class="card-text">Remaining Stock: {{ item.stock }}</p>
+                            <p class="card-text">Quantity in Cart: {{ item.quantity }}</p>
+                            <p class="card-text"><strong>${{ item.price }}</strong></p>
+                            <div class="button-box">
 
-                            <form style="display: inline-block; margin-bottom: 15px; margin-right: 6px;" action="/remove_from_cart" method="post">
-                                <input type="hidden" name="quantity" value="{{ 1 }}">
+                                <form style="display: inline-block; margin-bottom: 15px; margin-right: 6px;" action="/remove_from_cart" method="post">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                    <button type="submit" class="btn btn-danger">-</button>
+                                </form>
+                                <form style="display: inline-block; margin-bottom: 15px; margin-left: 6px" action="/increase" method="post">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                    <button type="submit" class="btn btn-success">+</button>
+                                </form>
+                                
+                            </div>
+                            <form action="/remove_from_cart" method="post">
+                                <input type="hidden" name="quantity" value="{{ item.quantity }}">
                                 <input type="hidden" name="item_name" value="{{ item.item_name }}">
-                                <button type="submit" class="btn btn-danger">-</button>
+                                <button type="submit" class="btn btn-danger">Remove</button>
                             </form>
-                            <form style="display: inline-block; margin-bottom: 15px; margin-left: 6px" action="/increase" method="post">
-                                <input type="hidden" name="quantity" value="{{ 1 }}">
-                                <input type="hidden" name="item_name" value="{{ item.item_name }}">
-                                <button type="submit" class="btn btn-success">+</button>
-                            </form>
-                            
                         </div>
-                        <form action="/remove_from_cart" method="post">
-                            <input type="hidden" name="quantity" value="{{ item.quantity }}">
-                            <input type="hidden" name="item_name" value="{{ item.item_name }}">
-                            <button type="submit" class="btn btn-danger">Remove</button>
-                        </form>
-                    </div>
-                </div> 
+                    </div> 
+                </div>
+            {% endfor %}
             </div>
-        {% endfor %}
         </div>
         <div class="shadow p-3 col-3" style="border-style: solid; border-width: 2px; border-radius: 10px; border-color: black;">
             <h5>Total</h5>

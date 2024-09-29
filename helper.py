@@ -1,7 +1,4 @@
-import os
-from requests import request
-from flask import Flask, redirect, session, render_template, flash, url_for
-from werkzeug.utils import secure_filename
+from flask import redirect, session, render_template
 from functools import wraps
 
 def login_required(f):

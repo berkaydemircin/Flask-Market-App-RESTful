@@ -59,7 +59,6 @@ def register():
             return displayError("Must provide password", 400)
         elif not password == request.form.get("confirmation"):
             return displayError("Passwords must match", 400)
-        
         passwordHash = generate_password_hash(password, method='pbkdf2', salt_length=16)
 
         # Registering new user to db
@@ -96,6 +95,9 @@ def login():
         cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         row = cursor.fetchone()
 
+        if row == None:
+            return displayError("Incorrect username/password.", 403)
+        
         # Ensure username exists and password is correct
         if not check_password_hash(row["hash"], password):
             return displayError("Invalid username and/or password", 403)
@@ -143,7 +145,7 @@ def vendors():
             items = cursor.fetchall()
             return render_template("vendors.html", vendors=vendors, items=items)
         except sqlite3.Error as e:
-            return displayError(print(e.sqlite_errorname))
+            return displayError(print(e.sqlite_errorname), 400)
 
 # Cart
 @app.route("/cart", methods=["GET"])
@@ -167,7 +169,8 @@ def cart():
     else:
         return render_template("cart.html")
 
-# To add items to cart
+# DEPRECATED! To add items to cart (THIS PATH IS BROKEN, CANNOT RETURN HTML TO JSON, USE /increase INSTEAD)
+# KEPT FOR FUTURE EXPERIMENTATION
 @app.route("/add_to_cart", methods=["POST"])
 @login_required
 def add_to_cart():
@@ -203,25 +206,62 @@ def add_to_cart():
 
     return render_template("cart.html", items=session["cart"]), 200
 
+@app.route("/increase", methods=["POST"])
+@login_required
+def increase():
+
+    cursor.execute("SELECT money FROM users WHERE user_id = ?", (session["user_id"],))
+    user_money = cursor.fetchone()["money"]
+    count = 0
+    total = 0
+
+    item_name = request.form.get("item_name")
+    # Checking if the cart exists and restructuring the cart
+    if "cart" in session:
+        for i in range(len(session["cart"])):
+            item = session["cart"][i]
+            if item_name == item["item_name"]:
+                item["quantity"] += 1
+
+    count = 0
+    total = 0
+    for item in session["cart"]:
+        count += int(item["quantity"])
+        total += count * int(item["price"])
+
+    flash(f"1 of {item_name} added to cart.")
+    return render_template("cart.html", items=session["cart"], total=total, count=count, funds=user_money), 200
+
 # Removing items from cart
 @app.route("/remove_from_cart", methods=["POST"])
 @login_required
 def remove_from_cart():
+
+    cursor.execute("SELECT money FROM users WHERE user_id = ?", (session["user_id"],))
+    user_money = cursor.fetchone()["money"]
+
     item_name = request.form.get("item_name")
     quantity = request.form.get("quantity")
     # Checking if the cart exists and restructuring the cart
     if "cart" in session:
         for i in range(len(session["cart"])):
             item = session["cart"][i]
-            if int(item["quantity"]) > int(quantity):
-                item["quantity"] = int(item["quantity"]) - int(quantity)
-                quantity = item["quantity"]
-            else:
-                quantity = item["quantity"]
-                session["cart"].remove(item)
-        session.modified = True  # Ensuring session is updated
+            if item_name == item["item_name"]:
+                if int(item["quantity"]) > int(quantity):
+                    item["quantity"] = int(item["quantity"]) - int(quantity)
+                else:
+                    session["cart"].remove(item)
+                session.modified = True  # Ensuring session is updated
+                break
+
+    count = 0
+    total = 0
+    for item in session["cart"]:
+        count += int(item["quantity"])
+        total += count * int(item["price"])
+
     flash(f"{quantity} of {item_name} removed from cart.")
-    return render_template("cart.html", items=session["cart"]), 200
+    return render_template("cart.html", items=session["cart"], total=total, count=count, funds=user_money), 200
 
 @app.route("/checkout", methods=["POST"])
 @login_required
@@ -239,12 +279,15 @@ def checkout():
         cursor.execute("UPDATE users SET money = money - ? WHERE user_id = ?", (total, session["user_id"]))
         conn.commit()
     else:
-        return displayError("Insufficient funds!"), 400
+        return displayError("Insufficient funds!", 400)
     
+    cursor.execute("SELECT item_name, stock, price, vendors.store_name FROM items JOIN vendors ON items.vendor_id = vendors.vendor_id LIMIT 8")
+    items = cursor.fetchall()
+
     # Empty cart if transaction is successful
     session["cart"] = []
     flash(f"{count} items bought for ${total}. Remaining funds: ${user_funds - total}")
-    return render_template("index.html"), 200
+    return render_template("index.html", items=items), 200
 
 # User logs out
 @app.route("/logout", methods=["GET"])
