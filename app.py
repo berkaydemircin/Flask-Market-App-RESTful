@@ -66,8 +66,8 @@ def register():
             cursor.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, passwordHash,))
             conn.commit()
             return redirect("/login")
-        except ValueError:
-            return displayError("User already registered", 400)
+        except sqlite3.Error:
+            return displayError("Username already registered", 400)
 
     else:
         return render_template("register.html")
@@ -158,13 +158,15 @@ def cart():
     if "cart" not in session:
         session["cart"] = []
 
+    total_count = 0
     total = 0
     for item in session["cart"]:
         count = int(item["quantity"])
+        total_count += count
         total += count * int(item["price"])
 
     if (session["cart"]):
-        return render_template("cart.html", items=session["cart"], count=count, total=total, funds=user_money), 200
+        return render_template("cart.html", items=session["cart"], count=total_count, total=total, funds=user_money), 200
     else:
         return render_template("cart.html")
 
@@ -220,13 +222,15 @@ def increase():
                 item["quantity"] += 1
                 break
 
+    total_count = 0
     total = 0
     for item in session["cart"]:
         count = int(item["quantity"])
+        total_count += count
         total += count * int(item["price"])
 
     flash(f"1 of {item_name} added to cart.")
-    return render_template("cart.html", items=session["cart"], total=total, count=count, funds=user_money), 200
+    return render_template("cart.html", items=session["cart"], total=total, count=total_count, funds=user_money), 200
 
 # Removing items from cart
 @app.route("/remove_from_cart", methods=["POST"])
@@ -249,22 +253,26 @@ def remove_from_cart():
                     session["cart"].remove(item)
                 session.modified = True  # Ensuring session is updated
                 break
-
+    
+    total_count = 0
     total = 0
     for item in session["cart"]:
         count = int(item["quantity"])
+        total_count += count
         total += count * int(item["price"])
 
     flash(f"{quantity} of {item_name} removed from cart.")
-    return render_template("cart.html", items=session["cart"], total=total, count=count, funds=user_money), 200
+    return render_template("cart.html", items=session["cart"], total=total, count=total_count, funds=user_money), 200
 
 @app.route("/checkout", methods=["POST"])
 @login_required
 def checkout():
 
+    total_count = 0
     total = 0
     for item in session["cart"]:
         count = int(item["quantity"])
+        total_count += count
         total += count * int(item["price"])
     
     cursor.execute("SELECT money FROM users WHERE user_id = ?", (session["user_id"],))
@@ -281,7 +289,7 @@ def checkout():
 
     # Empty cart if transaction is successful
     session["cart"] = []
-    flash(f"{count} items bought for ${total}. Remaining funds: ${user_funds - total}")
+    flash(f"{total_count} items bought for ${total}. Remaining funds: ${user_funds - total}")
     return render_template("index.html", items=items), 200
 
 # User logs out
