@@ -158,10 +158,9 @@ def cart():
     if "cart" not in session:
         session["cart"] = []
 
-    count = 0
     total = 0
     for item in session["cart"]:
-        count += int(item["quantity"])
+        count = int(item["quantity"])
         total += count * int(item["price"])
 
     if (session["cart"]):
@@ -212,21 +211,18 @@ def increase():
 
     cursor.execute("SELECT money FROM users WHERE user_id = ?", (session["user_id"],))
     user_money = cursor.fetchone()["money"]
-    count = 0
-    total = 0
-
     item_name = request.form.get("item_name")
+
     # Checking if the cart exists and restructuring the cart
     if "cart" in session:
-        for i in range(len(session["cart"])):
-            item = session["cart"][i]
+        for item in session["cart"]:
             if item_name == item["item_name"]:
                 item["quantity"] += 1
+                break
 
-    count = 0
     total = 0
     for item in session["cart"]:
-        count += int(item["quantity"])
+        count = int(item["quantity"])
         total += count * int(item["price"])
 
     flash(f"1 of {item_name} added to cart.")
@@ -254,10 +250,9 @@ def remove_from_cart():
                 session.modified = True  # Ensuring session is updated
                 break
 
-    count = 0
     total = 0
     for item in session["cart"]:
-        count += int(item["quantity"])
+        count = int(item["quantity"])
         total += count * int(item["price"])
 
     flash(f"{quantity} of {item_name} removed from cart.")
@@ -266,10 +261,10 @@ def remove_from_cart():
 @app.route("/checkout", methods=["POST"])
 @login_required
 def checkout():
-    count = 0
+
     total = 0
     for item in session["cart"]:
-        count += int(item["quantity"])
+        count = int(item["quantity"])
         total += count * int(item["price"])
     
     cursor.execute("SELECT money FROM users WHERE user_id = ?", (session["user_id"],))
@@ -447,7 +442,7 @@ def api_items():
     stock = data['stock']
     price = data['price']
 
-    # Updating vendor info
+    # Adding new item
     try:
         cursor.execute("INSERT INTO items ('item_name', 'vendor_id', 'stock', 'price') VALUES (?, ?, ?, ?)"
                        ,(item_name, vendor, stock, price))
