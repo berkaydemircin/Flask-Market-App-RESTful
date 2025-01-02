@@ -40,122 +40,133 @@ If you followed all the steps, the program should run correctly. If not please c
 
 * For vendor related actions
 * POST /api/vendors Registers a new vendor. Sample input:
->{
-    "username": "New Vendor",
-    "password": "123",
-    "display_name": "Cool Vendor",
-    "description": "A nice vendor that sells many things",
-    "contact_info": "+1111111"
+```json
+{
+   "username": "New Vendor",
+   "password": "123",
+   "display_name": "Cool Vendor",
+   "description": "A nice vendor that sells many things",
+   "contact_info": "+1111111"
 }
->
+```
 Sample Output:
->{
-    "status": "success"
+```json
+{
+   "status": "success"
 }
-
+```
 * POST /api/token To login and get an access token. Sample input:
->{
-    "username": "New Vendor",
-    "password": "123",
+```json
+{
+   "username": "New Vendor",
+   "password": "123",
 }
-
->
+```
 Sample Output:
->{
+```json
+{
     "access_token": "eıxc9sSB9S9Nsamoasqbe8a9s9199bas..."
 }
-
+```
 * GET /api/vendors/{id} Gets information about a specific vendor. Sample output:
->{
-    "contact_info": "techhaven@example.com",
-    "description": "Your one-stop shop for the latest gadgets.",
-    "store_name": "Tech Haven Electronics"
+```json
+{
+   "contact_info": "techhaven@example.com",
+   "description": "Your one-stop shop for the latest gadgets.",
+   "store_name": "Tech Haven Electronics"
 }
-
+```
 * PUT /api/vendors/{id}/update Updates the vendors information. JWT required. Sample input:
-> {
->   "display_name: "Store name",
->   "description": "Cool store description",
->   "contact_info": "something@example.com"
-> }
-
-Sample outputs:
-> {'error': 'not authorized to edit other vendors'}
-> {'error': f'missing field: {field}'}
-> {'status': 'success'}
-
-GET /api/vendors/{id}/items To view all the items of a vendor. JWT required. Sample output:
-> {
-    "items": [
-        {
-            "item_id": 1,
-            "item_name": "Laptop Pro",
-            "price": 1200,
-            "stock": 10,
-            "vendor_id": 1
-        },
->       {
-            "item_id": 2,
-            "item_name": "Wireless Mouse",
-            "price": 25,
-            "stock": 25,
-            "vendor_id": 1
-        },
->       {
-            "item_id": 3,
-            "item_name": "Bluetooth Headphones",
-            "price": 75,
-            "stock": 15,
-            "vendor_id": 1
-        },
->       {
-            "item_id": 4,
-            "item_name": "4K Monitor",
-            "price": 300,
-            "stock": 8,
-            "vendor_id": 1
-        },
->       {
-            "item_id": 7,
-            "item_name": "Smartwatch",
-            "price": 150,
-            "stock": 18,
-            "vendor_id": 1
-        },
->       {
-            "item_id": 10,
-            "item_name": "VR Headset",
-            "price": 400,
-            "stock": 5,
-            "vendor_id": 1
-        }
-    ],
-    "vendor_id": 1
+```json
+{
+   "display_name": "Store name",
+   "description": "Cool store description",
+   "contact_info": "something@example.com"
 }
-
+```
+Sample outputs:
+```json
+{"error": "not authorized to edit other vendors"}
+{"error": "missing field: fieldName"}
+{"status": "success"}
+```
+GET /api/vendors/{id}/items To view all the items of a vendor. JWT required. Sample output:
+```json
+{
+  "items": [
+    {
+      "item_id": 1,
+      "item_name": "Laptop Pro",
+      "price": 1200,
+      "stock": 10,
+      "vendor_id": 1
+    },
+    {
+      "item_id": 2,
+      "item_name": "Wireless Mouse",
+      "price": 25,
+      "stock": 25,
+      "vendor_id": 1
+    },
+    {
+      "item_id": 3,
+      "item_name": "Bluetooth Headphones",
+      "price": 75,
+      "stock": 15,
+      "vendor_id": 1
+    },
+    {
+      "item_id": 4,
+      "item_name": "4K Monitor",
+      "price": 300,
+      "stock": 8,
+      "vendor_id": 1
+    },
+    {
+      "item_id": 7,
+      "item_name": "Smartwatch",
+      "price": 150,
+      "stock": 18,
+      "vendor_id": 1
+    },
+    {
+      "item_id": 10,
+      "item_name": "VR Headset",
+      "price": 400,
+      "stock": 5,
+      "vendor_id": 1
+    }
+  ],
+  "vendor_id": 1
+}
+```
 * For item related actions
 * POST /api/items Create a new item under vendor. JWT Required. Sample input:
-> {
-    "item_name": "New item",
-    "stock": 50,
-    "price": 10
+```json
+{
+   "item_name": "New item",
+   "stock": 50,
+   "price": 10
 }
-
+```
 Sample Output: 
-> {
+```json
+{
     "status": "success"
 }
-
+```
 * GET /api/items/{id} To see an items details. JWT Required. Sample output:
-> {
+```json
+{
     "item_id": 1,
     "item_name": "Laptop Pro",
     "price": 1200,
     "stock": 10,
     "vendor_id": 1
 }
-
+```
 * DELETE /api/items/{id}/delete To delete an item. Sample outputs:
-> {"status": "success"}
-> 
-> {'error': 'item not found, it may not belong to you'}
+```json
+{"status": "success"}
+{"error": "item not found, it may not belong to you"}
+```
